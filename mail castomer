@@ -1,0 +1,38 @@
+import pandas as pd
+# Загрузите данные из датасета "Mall Customer Segmentation"df = pd.read_csv('Mall_Customers.csv')
+# Просмотрите первые несколько строк данных
+print(df.head())
+# Информация о датасетеprint(df.info())
+# Проверьте наличие пропущенных значений
+print(df.isnull().sum())
+# Определите типы данных для каждого столбцаprint(df.dtypes)
+# Анализ распределения пола
+print(df['Gender'].value_counts())sns.countplot(df['Gender'])
+plt.show()
+# Анализ распределения возрастаsns.distplot(df['Age'])
+plt.show()
+# Анализ распределения дохода
+sns.distplot(df['Annual Income (k$)'])plt.show()
+# Анализ распределения оценки расходов
+sns.distplot(df['Spending Score (1-100)'])plt.show()
+# Вычислите корреляционную матрицу
+corr = df.corr()
+# Визуализируйте корреляционную матрицуsns.heatmap(corr, annot=True)
+plt.show()
+# Преобразуйте категориальную переменную "Пол" в количественнуюdf['Gender'] = df['Gender'].astype('category')
+df['Gender'] = df['Gender'].cat.codes
+# Выполните масштабирование признаковfrom sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()df_scaled = scaler.fit_transform(df[['Age', 'Annual Income (k$)', 'Spending Score (1-100)']])
+# Примените метод K-средних для кластеризации данных
+from sklearn.cluster import KMeanskmeans = KMeans(n_clusters=3)
+kmeans.fit(df_scaled)
+# Определите оптимальное количество кластеров с помощью метода локтяfrom sklearn.cluster import ElbowMethod
+elbow = ElbowMethod(kmeans, df_scaled)elbow.fit()
+print(elbow.get_n_clusters())
+# Проведите кластеризацию с оптимальным количеством кластеровkmeans = KMeans(n_clusters=elbow.get_n_clusters())
+kmeans.fit(df_scaled)
+# Визуализируйте результаты кластеризации на графике с двумя главными компонентамиfrom sklearn.decomposition import PCA
+pca = PCA(n_components=2)pca_data = pca.fit_transform(df_scaled)
+plt.scatter(pca_data[:, 0], pca_data[:, 1], c=kmeans.labels_)
+plt.show()
+# Оцените характеристики каждого кластера (средние значения признаков)print(df_scaled.groupby(kmeans.labels_).mean())
